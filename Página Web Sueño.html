@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora y Horario de Sueño</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --calc-bg: #ffffff;
+            --calc-primary: #0A84C6;
+            --calc-btn: #32A1F0;
+            --calc-text: #444444;
+            --tracker-bg: #081729;
+            --tracker-panel: #0F2038;
+            --tracker-text: #ffffff;
+            --bar-orange: #FF5D0A;
+            --bar-teal: #0DC6B4;
+            --grid-line: #1C3352;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #f0f4f8;
+            color: #333;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--calc-primary);
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+
+        .panels-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* --- CALCULADORA --- */
+        .calc-panel {
+            background: var(--calc-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 2px solid #2e2978; 
+            overflow: hidden;
+        }
+
+        .calc-header {
+            background-color: var(--calc-primary);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .calc-header h2 { font-weight: 600; font-size: 1.8rem; margin:0;}
+
+        .calc-body {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--calc-btn);
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .time-selects {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .select-box {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--calc-btn);
+            border-radius: 8px;
+            color: var(--calc-btn);
+            font-size: 1.1rem;
+            font-weight: 600;
+            outline: none;
+            background: url('data:image/svg+xml;utf8,<svg fill="%2332A1F0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+            background-color: white;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .recommendation-text {
+            color: #555;
+            font-weight: 700;
+            margin: 20px 0 30px 0;
+            font-size: 1.2rem;
+        }
+
+        .results-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .result-box { flex: 1; }
+
+        .result-time {
+            color: var(--calc-btn);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .result-label {
+            color: var(--calc-btn);
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .divider {
+            width: 2px;
+            height: 40px;
+            background-color: var(--calc-primary);
+            opacity: 0.8;
+        }
+
+        .share-btn {
+            background-color: var(--calc-btn);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .share-btn:hover { background-color: var(--calc-primary); }
+
+        /* --- HORARIO DE SUEÑO --- */
+        .tracker-panel {
+            background: var(--tracker-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            color: var(--tracker-text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--tracker-panel);
+        }
+
+        .tracker-header h2 { font-size: 1.1rem; font-weight: 400; color: #a4b5c7; margin:0;}
+        .tracker-header .icon { font-size: 0.9rem; color: #a4b5c7; }
+
+        .tracker-body { padding: 20px; }
+
+        .chart-container {
+            position: relative;
+            margin-bottom: 30px;
+            background: var(--tracker-panel);
+            border-radius: 8px;
+            padding: 20px 10px;
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 20px; bottom: 40px; left: 40px; right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .grid-line-v { 
+            width: 1px; 
+            height: 100%; 
+            background-color: var(--grid-line); 
+            border-right: 1px dashed rgba(255,255,255,0.05);
+        }
+
+        .chart-rows { 
+            position: relative; 
+            width: 100%; 
+            padding-left: 40px; 
+            padding-right: 20px; 
+            z-index: 2; 
+        }
+
+        .chart-row {
+            height: 28px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .day-label {
+            position: absolute;
+            left: -30px;
+            width: 25px;
+            text-align: right;
+            font-size: 0.9rem;
+            color: #a4b5c7;
+        }
+
+        .bar-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sleep-bar {
+            position: absolute;
+            height: 14px;
+            top: 7px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sleep-bar.orange { background-color: var(--bar-orange); }
+        .sleep-bar.teal { background-color: var(--bar-teal); }
+
+        .chart-x-axis {
+            display: flex;
+            justify-content: space-between;
+            margin-left: 40px;
+            margin-right: 20px;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #88a0b5;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #a4b5c7;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .color-box { width: 14px; height: 14px; border-radius: 3px; }
+        .color-box.teal { background-color: var(--bar-teal); }
+        .color-box.orange { background-color: var(--bar-orange); }
+
+        .schedule-editor {
+            background-color: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--grid-line);
+        }
+        .schedule-editor h3 { 
+            font-size: 1rem; 
+            margin-bottom: 15px; 
+            font-weight: 600;
+            color: #a4b5c7;
+        }
+
+        .day-input-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .day-input-row > span { 
+            width: 20px; 
+            text-align: center; 
+            font-weight: 600;
+        }
+        .day-input-row input[type="time"] {
+            background: var(--tracker-bg);
+            border: 1px solid var(--grid-line);
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        .day-input-row select {
+            flex: 1;
+            background: var(--tracker-bg);
+            border: 1px solid var(--grid-line);
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: inherit;
+            outline: none;
+        }
+        @media (max-width: 600px) {
+            .time-selects { flex-direction: column; }
+            .results-container { flex-direction: column; gap: 20px; }
+            .divider { width: 40px; height: 2px; }
+            .day-input-row { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">Gestión de Sueño</h1>
+        
+        <div class="panels-wrapper">
+            <!-- Sección 1: Calculadora de Sueño -->
+            <div class="panel calc-panel">
+                <div class="calc-header">
+                    <h2>Calculadora de sueño</h2>
+                </div>
+                <div class="calc-body">
+                    <div class="input-group">
+                        <label>Quiero levantarme a las...</label>
+                        <div class="time-selects">
+                            <select id="calc-hour" class="select-box"></select>
+                            <select id="calc-min" class="select-box"></select>
+                        </div>
+                    </div>
+                    
+                    <p class="recommendation-text">Entonces te recomendamos acostarte a las...</p>
+                    
+                    <div class="results-container">
+                        <div class="result-box">
+                            <div class="result-time" id="res-time-6">00:00</div>
+                            <div class="result-label">6 ciclos<br>de sueño</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="result-box">
+                            <div class="result-time" id="res-time-5">01:30</div>
+                            <div class="result-label">5 ciclos<br>de sueño</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="result-box">
+                            <div class="result-time" id="res-time-4">03:00</div>
+                            <div class="result-label">4 ciclos<br>de sueño</div>
+                        </div>
+                    </div>
+                    
+                    <button class="share-btn">¡Compártelo!</button>
+                </div>
+            </div>
+
+            <!-- Sección 2: Horario de Sueño -->
+            <div class="panel tracker-panel">
+                <div class="tracker-header">
+                    <span class="icon">💤 DORMIDO</span>
+                    <h2>Horario de sueño inicial</h2>
+                    <span class="icon">🏃 DESPIERTO</span>
+                </div>
+                
+                <div class="tracker-body">
+                    <!-- Chart section -->
+                    <div class="chart-container">
+                        <div class="chart-grid" id="chart-grid"></div>
+                        <div class="chart-rows" id="chart-rows"></div>
+                        <div class="chart-x-axis">
+                            <span>18:00</span>
+                            <span>21:00</span>
+                            <span>00:00</span>
+                            <span>03:00</span>
+                            <span>06:00</span>
+                            <span>09:00</span>
+                            <span>12:00</span>
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><span class="color-box teal"></span> CUMPLIDO</div>
+                            <div class="legend-item"><span class="color-box orange"></span> NO CUMPLIDO</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inputs para que el usuario ponga su horario -->
+                    <div class="schedule-editor">
+                        <h3>Edita tu horario de la semana</h3>
+                        <div id="schedule-inputs-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CALCULADORA DE SUEÑO ---
+            const calcHour = document.getElementById('calc-hour');
+            const calcMin = document.getElementById('calc-min');
+
+            for (let i = 0; i < 24; i++) {
+                let val = i.toString().padStart(2, '0');
+                calcHour.innerHTML += `<option value="${i}">${val}</option>`;
+            }
+            for (let i = 0; i < 60; i+=5) { 
+                let val = i.toString().padStart(2, '0');
+                calcMin.innerHTML += `<option value="${i}">${val}</option>`;
+            }
+
+            calcHour.value = "9";
+            calcMin.value = "0";
+
+            function updateCalculator() {
+                const h = parseInt(calcHour.value);
+                const m = parseInt(calcMin.value);
+
+                let wakeDate = new Date();
+                wakeDate.setHours(h, m, 0, 0);
+
+                let c6 = new Date(wakeDate.getTime() - 9 * 60 * 60 * 1000);
+                let c5 = new Date(wakeDate.getTime() - 7.5 * 60 * 60 * 1000);
+                let c4 = new Date(wakeDate.getTime() - 6 * 60 * 60 * 1000);
+
+                function formatTime(d) {
+                    return d.getHours().toString().padStart(2, '0') + ':' + 
+                           d.getMinutes().toString().padStart(2, '0');
+                }
+
+                document.getElementById('res-time-6').innerText = formatTime(c6);
+                document.getElementById('res-time-5').innerText = formatTime(c5);
+                document.getElementById('res-time-4').innerText = formatTime(c4);
+            }
+
+            calcHour.addEventListener('change', updateCalculator);
+            calcMin.addEventListener('change', updateCalculator);
+            updateCalculator();
+
+            // --- HORARIO DE SUEÑO ---
+            const days = [
+                { id: 'lun', label: 'L', start: '22:30', end: '06:30', status: 'orange' },
+                { id: 'mar', label: 'M', start: '23:00', end: '07:00', status: 'teal' },
+                { id: 'mie', label: 'M', start: '00:30', end: '08:30', status: 'orange' },
+                { id: 'jue', label: 'J', start: '23:00', end: '07:00', status: 'teal' },
+                { id: 'vie', label: 'V', start: '22:00', end: '06:00', status: 'teal' },
+                { id: 'sab', label: 'S', start: '01:00', end: '09:00', status: 'orange' },
+                { id: 'dom', label: 'D', start: '23:30', end: '06:30', status: 'orange' }
+            ];
+
+            const CHART_START_MIN = 18 * 60; 
+            const TOTAL_MINS = 18 * 60; 
+
+            const editorContainer = document.getElementById('schedule-inputs-container');
+            const chartRows = document.getElementById('chart-rows');
+            const chartGrid = document.getElementById('chart-grid');
+
+            for(let i=0; i<=6; i++) {
+                let gridElem = document.createElement('div');
+                gridElem.className = 'grid-line-v' + (i===2 || i===5 ? ' grid-line-thick' : ''); 
+                chartGrid.appendChild(gridElem);
+            }
+
+            function renderTracker() {
+                editorContainer.innerHTML = '';
+                chartRows.innerHTML = '';
+
+                days.forEach((day, index) => {
+                    const rowElem = document.createElement('div');
+                    rowElem.className = 'day-input-row';
+                    rowElem.innerHTML = `
+                        <span>${day.label}</span>
+                        <input type="time" value="${day.start}" id="start-${index}" title="Hora de acostarse">
+                        <input type="time" value="${day.end}" id="end-${index}" title="Hora de levantarse">
+                        <select id="status-${index}">
+                            <option value="teal" ${day.status === 'teal' ? 'selected' : ''}>Cumplido</option>
+                            <option value="orange" ${day.status === 'orange' ? 'selected' : ''}>No Cumplido</option>
+                        </select>
+                    `;
+                    editorContainer.appendChild(rowElem);
+
+                    document.getElementById(`start-${index}`).addEventListener('change', (e) => { day.start = e.target.value; updateChart(); });
+                    document.getElementById(`end-${index}`).addEventListener('change', (e) => { day.end = e.target.value; updateChart(); });
+                    document.getElementById(`status-${index}`).addEventListener('change', (e) => { day.status = e.target.value; updateChart(); });
+
+                    const cRow = document.createElement('div');
+                    cRow.className = 'chart-row';
+                    cRow.innerHTML = `
+                        <div class="day-label">${day.label}</div>
+                        <div class="bar-area">
+                            <div class="sleep-bar ${day.status}" id="bar-${index}"></div>
+                        </div>
+                    `;
+                    chartRows.appendChild(cRow);
+                });
+                updateChart();
+            }
+
+            function timeToMinsFromChartStart(timeStr) {
+                const [h, m] = timeStr.split(':').map(Number);
+                let mins = h * 60 + m;
+                if (h < 18) {
+                    mins += 24 * 60;
+                }
+                return mins - CHART_START_MIN;
+            }
+
+            function updateChart() {
+                days.forEach((day, index) => {
+                    let startMins = timeToMinsFromChartStart(day.start);
+                    let endMins = timeToMinsFromChartStart(day.end);
+
+                    if (endMins < startMins) {
+                        endMins += 24 * 60; 
+                    }
+
+                    let leftSec = (startMins / TOTAL_MINS) * 100;
+                    let widthSec = ((endMins - startMins) / TOTAL_MINS) * 100;
+
+                    if(leftSec < 0) { widthSec += leftSec; leftSec = 0; }
+                    if(leftSec + widthSec > 100) widthSec = 100 - leftSec;
+
+                    const bar = document.getElementById(`bar-${index}`);
+                    bar.style.left = leftSec + '%';
+                    bar.style.width = widthSec + '%';
+                    bar.className = `sleep-bar ${day.status}`;
+                });
+            }
+
+            renderTracker();
+        });
+    </script>
+</body>
+</html>
